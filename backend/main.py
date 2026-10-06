@@ -1,11 +1,18 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.staticfiles import StaticFiles
 
 from .database import get_connection, init_db
-from .models import WAITING_STATUSES, Application, ApplicationCreate, Stats, Status
+from .models import (
+    WAITING_STATUSES,
+    Application,
+    ApplicationCreate,
+    Stats,
+    Status,
+    StatusUpdate,
+)
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
@@ -24,7 +31,7 @@ def create_application(data: ApplicationCreate):
     with get_connection() as conn:
         cursor = conn.execute(
             "INSERT INTO applications (company, role, status, date_applied) VALUES (?, ?, ?, ?)",
-            (data.company.strip(), data.role.strip(), data.status, data.date_applied.isoformat()),
+            (data.company, data.role, data.status, data.date_applied.isoformat()),
         )
         new_id = cursor.lastrowid
     return Application(id=new_id, **data.model_dump())
@@ -41,6 +48,32 @@ def list_applications(status: Status | None = None):
     with get_connection() as conn:
         rows = conn.execute(query, params).fetchall()
     return [dict(row) for row in rows]
+
+
+@app.patch("/api/applications/{application_id}", response_model=Application)
+def update_status(application_id: int, data: StatusUpdate):
+    with get_connection() as conn:
+        cursor = conn.execute(
+            "UPDATE applications SET status = ? WHERE id = ?",
+            (data.status, application_id),
+        )
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Application not found")
+        row = conn.execute(
+            "SELECT * FROM applications WHERE id = ?", (application_id,)
+        ).fetchone()
+    return dict(row)
+
+
+@app.delete("/api/applications/{application_id}", status_code=204)
+def delete_application(application_id: int):
+    with get_connection() as conn:
+        cursor = conn.execute(
+            "DELETE FROM applications WHERE id = ?", (application_id,)
+        )
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Application not found")
+    return Response(status_code=204)
 
 
 @app.get("/api/stats", response_model=Stats)

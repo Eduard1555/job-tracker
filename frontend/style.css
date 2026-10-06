@@ -228,6 +228,60 @@ tbody tr:last-child td {
   background: #fee2e2;
 }
 
+/* Status dropdown in the table, styled as a badge */
+.badge-select {
+  padding: 2px 8px;
+  font-family: inherit;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.badge-select:hover {
+  border-color: currentColor;
+}
+
+.badge-select option {
+  color: var(--text);
+  background: var(--surface);
+}
+
+/* Delete button: quiet until hovered */
+.actions {
+  text-align: right;
+}
+
+.button-delete {
+  padding: 4px 12px;
+  font-size: 13px;
+  color: var(--error);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.button-delete:hover {
+  color: #ffffff;
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.table-message {
+  margin: 12px 0 0;
+}
+
+.table-message:empty {
+  display: none;
+}
+
+/* Hidden visually but still read by screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 /* Phones: stack everything in one column */
 @media (max-width: 600px) {
   .form-grid {

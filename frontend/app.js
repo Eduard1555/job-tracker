@@ -1,10 +1,12 @@
 const API = "/api";
+const STATUSES = ["Applied", "Interviewing", "Offer", "Rejected"];
 
 const form = document.getElementById("add-form");
 const formMessage = document.getElementById("form-message");
 const statusFilter = document.getElementById("status-filter");
 const tableBody = document.getElementById("applications-body");
 const emptyMessage = document.getElementById("empty-message");
+const tableMessage = document.getElementById("table-message");
 
 // Today's date in local time, formatted as YYYY-MM-DD for the date input
 function today() {
@@ -19,6 +21,42 @@ function showMessage(text, type) {
   formMessage.className = `message ${type}`;
 }
 
+function showTableMessage(text, type) {
+  tableMessage.textContent = text;
+  tableMessage.className = `message table-message ${type}`;
+}
+
+async function changeStatus(app, newStatus, select) {
+  select.disabled = true;
+  try {
+    const response = await fetch(`${API}/applications/${app.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (!response.ok) throw new Error();
+    showTableMessage(`${app.company}: status changed to ${newStatus}.`, "success");
+  } catch {
+    showTableMessage(`Could not change the status of ${app.company}.`, "error");
+  }
+  // Reload either way: on success to update stats/filter, on failure to undo the dropdown change
+  await refresh();
+}
+
+async function deleteApplication(app) {
+  if (!confirm(`Delete the application to ${app.company} (${app.role})?\nThis cannot be undone.`)) {
+    return;
+  }
+  try {
+    const response = await fetch(`${API}/applications/${app.id}`, { method: "DELETE" });
+    if (!response.ok) throw new Error();
+    showTableMessage(`Deleted ${app.company}.`, "success");
+  } catch {
+    showTableMessage(`Could not delete ${app.company}.`, "error");
+  }
+  await refresh();
+}
+
 // Build one table row. textContent (not innerHTML) keeps user input from being run as HTML.
 function createRow(app) {
   const row = document.createElement("tr");
@@ -29,16 +67,31 @@ function createRow(app) {
   const role = document.createElement("td");
   role.textContent = app.role;
 
+  // Status is a dropdown styled like a coloured badge
   const status = document.createElement("td");
-  const badge = document.createElement("span");
-  badge.className = `badge badge-${app.status.toLowerCase()}`;
-  badge.textContent = app.status;
-  status.appendChild(badge);
+  const select = document.createElement("select");
+  select.className = `badge badge-select badge-${app.status.toLowerCase()}`;
+  select.setAttribute("aria-label", `Status for ${app.company}`);
+  for (const value of STATUSES) {
+    select.add(new Option(value, value, false, value === app.status));
+  }
+  select.addEventListener("change", () => changeStatus(app, select.value, select));
+  status.appendChild(select);
 
   const date = document.createElement("td");
   date.textContent = app.date_applied;
 
-  row.append(company, role, status, date);
+  const actions = document.createElement("td");
+  actions.className = "actions";
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.className = "button-delete";
+  deleteButton.textContent = "Delete";
+  deleteButton.setAttribute("aria-label", `Delete ${app.company}`);
+  deleteButton.addEventListener("click", () => deleteApplication(app));
+  actions.appendChild(deleteButton);
+
+  row.append(company, role, status, date, actions);
   return row;
 }
 
