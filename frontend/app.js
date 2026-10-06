@@ -8,9 +8,13 @@ const tableBody = document.getElementById("applications-body");
 const emptyMessage = document.getElementById("empty-message");
 const tableMessage = document.getElementById("table-message");
 
-// Today's date formatted as YYYY-MM-DD for the date input
+// Today's local date formatted as YYYY-MM-DD for the date input.
+// (Not toISOString(): that is the UTC date, which is off by a day near midnight.)
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
 }
 
 function showMessage(text, type) {
