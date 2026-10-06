@@ -66,7 +66,7 @@ function createRow(app) {
   company.textContent = app.company;
 
   const role = document.createElement("td");
-  role.innerHTML = app.role;
+  role.textContent = app.role;
 
   // Status is a dropdown styled like a coloured badge
   const status = document.createElement("td");

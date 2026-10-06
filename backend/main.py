@@ -44,7 +44,7 @@ def list_applications(status: Status | None = None):
     if status:
         query += " WHERE status = ?"
         params = (status,)
-    query += " ORDER BY date_applied DESC, id"
+    query += " ORDER BY date_applied DESC, id DESC"
     with get_connection() as conn:
         rows = conn.execute(query, params).fetchall()
     return [dict(row) for row in rows]

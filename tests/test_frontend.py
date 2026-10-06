@@ -47,3 +47,8 @@ def test_default_date_is_the_users_local_date(utc_now, offset_hours, expected):
     js.eval(f"useFakeNow(RealDate.parse('{utc_now}'), {offset_hours})")
 
     assert js.eval("today()") == expected
+
+
+def test_app_js_never_renders_text_as_html():
+    # innerHTML would treat user input like "Engineer <Backend>" as HTML tags (and run scripts)
+    assert not re.search(r"\.innerHTML\s*=", APP_JS.read_text())

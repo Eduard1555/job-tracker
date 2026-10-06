@@ -85,6 +85,16 @@ def test_list_is_sorted_newest_first(client):
     assert companies == ["New", "Middle", "Old"]
 
 
+def test_list_shows_latest_added_first_within_the_same_day(client):
+    add(client, company="Older day", date_applied="2026-10-06")
+    add(client, company="First", date_applied="2026-10-07")
+    add(client, company="Second", date_applied="2026-10-07")
+    add(client, company="Just added", date_applied="2026-10-07")
+
+    companies = [a["company"] for a in client.get("/api/applications").json()]
+    assert companies == ["Just added", "Second", "First", "Older day"]
+
+
 def test_filter_by_status(client):
     add(client, company="A", status="Applied")
     add(client, company="B", status="Rejected")
