@@ -8,12 +8,9 @@ const tableBody = document.getElementById("applications-body");
 const emptyMessage = document.getElementById("empty-message");
 const tableMessage = document.getElementById("table-message");
 
-// Today's date in local time, formatted as YYYY-MM-DD for the date input
+// Today's date formatted as YYYY-MM-DD for the date input
 function today() {
-  const d = new Date();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${month}-${day}`;
+  return new Date().toISOString().slice(0, 10);
 }
 
 function showMessage(text, type) {
@@ -65,7 +62,7 @@ function createRow(app) {
   company.textContent = app.company;
 
   const role = document.createElement("td");
-  role.textContent = app.role;
+  role.innerHTML = app.role;
 
   // Status is a dropdown styled like a coloured badge
   const status = document.createElement("td");
